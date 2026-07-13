@@ -22,12 +22,13 @@ function Register() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96">
-                <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
+            <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-xl w-96 border border-slate-100">
+                <h1 className="text-2xl font-bold mb-1 text-center text-slate-800">Create account</h1>
+                <p className="text-sm text-slate-400 text-center mb-6">Start organizing your projects</p>
 
                 {error && (
-                    <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
+                    <div className="bg-red-100 text-red-700 p-2 rounded-md mb-4 text-sm">
                         {error}
                     </div>
                 )}
@@ -37,7 +38,7 @@ function Register() {
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full border rounded p-2 mb-3"
+                    className="w-full border border-slate-200 rounded-md p-2.5 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     required
                 />
                 <input
@@ -45,7 +46,7 @@ function Register() {
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border rounded p-2 mb-3"
+                    className="w-full border border-slate-200 rounded-md p-2.5 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     required
                 />
                 <input
@@ -53,20 +54,20 @@ function Register() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border rounded p-2 mb-4"
+                    className="w-full border border-slate-200 rounded-md p-2.5 mb-5 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     required
                 />
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                    className="w-full bg-blue-600 text-white py-2.5 rounded-md hover:bg-blue-700 transition shadow-sm font-medium"
                 >
-                    Register
+                    Create Account
                 </button>
 
-                <p className="text-center mt-4 text-sm">
+                <p className="text-center mt-5 text-sm text-slate-500">
                     Already have an account?{' '}
-                    <Link to="/login" className="text-blue-600">Login</Link>
+                    <Link to="/login" className="text-blue-600 font-medium hover:underline">Login</Link>
                 </p>
             </form>
         </div>
