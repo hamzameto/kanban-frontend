@@ -7,7 +7,7 @@ import {
     useSensor,
     useSensors,
 } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import api from '../api/axios';
 import List from '../components/List';
 
@@ -53,10 +53,45 @@ function BoardDetail() {
         return null;
     };
 
-    const handleDragEnd = async (event) => {
-        const { active, over } = event;
-        if (!over) return;
+    const handleListDragEnd = async (active, over) => {
+        const activeListId = active.data.current.listId;
 
+        let overListId;
+        if (over.data.current?.type === 'list') {
+            overListId = over.data.current.listId;
+        } else if (over.data.current?.type === 'card') {
+            const overLocation = findCardLocation(over.id);
+            if (!overLocation) return;
+            overListId = overLocation.listId;
+        } else {
+            return;
+        }
+
+        if (activeListId === overListId) return;
+
+        const oldIndex = lists.findIndex((l) => l.id === activeListId);
+        const newIndex = lists.findIndex((l) => l.id === overListId);
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const reordered = arrayMove(lists, oldIndex, newIndex);
+        setLists(reordered);
+
+        try {
+            await Promise.all(
+                reordered.map((list, index) =>
+                    api.put(`/boardlists/${list.id}`, {
+                        title: list.title,
+                        position: index,
+                    })
+                )
+            );
+        } catch (err) {
+            setError('Failed to reorder lists');
+            fetchLists();
+        }
+    };
+
+    const handleCardDragEnd = async (active, over) => {
         const activeCardId = active.id;
         const sourceLocation = findCardLocation(activeCardId);
         if (!sourceLocation) return;
@@ -135,6 +170,17 @@ function BoardDetail() {
         }
     };
 
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (!over) return;
+
+        if (active.data.current?.type === 'list') {
+            handleListDragEnd(active, over);
+        } else {
+            handleCardDragEnd(active, over);
+        }
+    };
+
     const handleCreateList = async (e) => {
         e.preventDefault();
         if (!newListTitle.trim()) return;
@@ -191,13 +237,18 @@ function BoardDetail() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
-            <Link to="/dashboard" className="text-blue-600 hover:underline mb-4 inline-block">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 p-6">
+            <Link
+                to="/dashboard"
+                className="text-slate-500 hover:text-blue-600 text-sm mb-4 inline-flex items-center gap-1 transition"
+            >
                 ← Back to Dashboard
             </Link>
 
             {error && (
-                <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">{error}</div>
+                <div className="bg-red-100 text-red-700 p-2 rounded-md mb-4 text-sm max-w-md">
+                    {error}
+                </div>
             )}
 
             <form onSubmit={handleCreateList} className="flex gap-2 mb-6">
@@ -206,30 +257,35 @@ function BoardDetail() {
                     placeholder="New list title"
                     value={newListTitle}
                     onChange={(e) => setNewListTitle(e.target.value)}
-                    className="border rounded p-2"
+                    className="border border-slate-200 rounded-md p-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
-                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    Add List
+                <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition shadow-sm"
+                >
+                    + Add List
                 </button>
             </form>
 
             <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-                <div className="flex gap-4 overflow-x-auto">
-                    {lists.map((list) => (
-                        <List
-                            key={list.id}
-                            list={list}
-                            cards={cardsByList[list.id] || []}
-                            onDeleteList={handleDeleteList}
-                            onDeleteCard={handleDeleteCard}
-                            onAddCard={handleAddCard}
-                            newCardTitle={newCardTitles[list.id]}
-                            onNewCardTitleChange={(listId, value) =>
-                                setNewCardTitles((prev) => ({ ...prev, [listId]: value }))
-                            }
-                        />
-                    ))}
-                </div>
+                <SortableContext items={lists.map((l) => `list-${l.id}`)} strategy={horizontalListSortingStrategy}>
+                    <div className="flex gap-4 overflow-x-auto pb-4">
+                        {lists.map((list) => (
+                            <List
+                                key={list.id}
+                                list={list}
+                                cards={cardsByList[list.id] || []}
+                                onDeleteList={handleDeleteList}
+                                onDeleteCard={handleDeleteCard}
+                                onAddCard={handleAddCard}
+                                newCardTitle={newCardTitles[list.id]}
+                                onNewCardTitleChange={(listId, value) =>
+                                    setNewCardTitles((prev) => ({ ...prev, [listId]: value }))
+                                }
+                            />
+                        ))}
+                    </div>
+                </SortableContext>
             </DndContext>
         </div>
     );

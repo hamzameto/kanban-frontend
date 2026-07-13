@@ -8,7 +8,7 @@ function Card({ card, onDelete }) {
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging ? 0.4 : 1,
     };
 
     return (
@@ -17,15 +17,15 @@ function Card({ card, onDelete }) {
             style={style}
             {...attributes}
             {...listeners}
-            className="bg-gray-50 border rounded p-2 flex justify-between items-start cursor-grab active:cursor-grabbing"
+            className="bg-white border border-slate-200 rounded-md p-2.5 shadow-sm hover:shadow-md hover:border-blue-300 transition cursor-grab active:cursor-grabbing group flex justify-between items-start"
         >
-            <span className="text-sm">{card.title}</span>
+            <span className="text-sm text-slate-700">{card.title}</span>
             <button
                 onClick={(e) => {
                     e.stopPropagation();
                     onDelete(card.id);
                 }}
-                className="text-red-500 text-xs ml-2"
+                className="text-slate-300 group-hover:text-red-500 text-xs ml-2 transition"
             >
                 ✕
             </button>
